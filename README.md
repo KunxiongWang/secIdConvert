@@ -1,5 +1,5 @@
-This is a project for converting a specific source security ID into  other sources security ID.
+This is a project for converting a specific source security ID into other sources security ID.
 
-They key point is to concat different sources secID by ticker ID.
+They key point is to concat different source secIDs by ticker IDs.
 
-So far, the package support convertion between tikder and tonglian.
+So far, the package support the convertion between ticker and tonglian.
