@@ -115,6 +115,7 @@ class tonglian(secIdSource):
         Args:
             tonglian_etf_id: str
 
+
         Returns:
             str, ticker ID
         """
