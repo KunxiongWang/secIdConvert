@@ -44,6 +44,18 @@ class ticker(secIdSource):
                 return self.etf_convert_tonglian(sec_id)
             else:
                 raise ValueError(f'{sec_type} is not included so far')
+        elif self.to_source == 'wind':
+            if sec_type == 'stock':
+                return self.stock_convert_wind(sec_id)
+            else:
+                raise ValueError(f'{sec_type} is not included so far')
+
+        elif self.to_source == 'rq':
+            if sec_type == 'stock':
+                return self.stock_convert_rq(sec_id)
+            else:
+                raise ValueError(f'{sec_type} is not included so far')
+
         else:
             raise ValueError(f'{self.to_source} is not included so far')
 
@@ -65,16 +77,33 @@ class ticker(secIdSource):
             convert_id = sec_id + '.UKNOW'
         return convert_id
 
+    def stock_convert_wind(self, sec_id):
+        if sec_id.startswith(('603', '688', '600', '605', '601')):
+            convert_id = sec_id + '.SH'
+        elif sec_id.startswith(('300', '002', '000')):
+            convert_id = sec_id + '.SZ'
+        else:
+            print(f'{sec_id} is not named under rules, converted into {sec_id}.UKNOW')
+            convert_id = sec_id + '.UKNOW'
+        return convert_id
 
-class tonglian(secIdSource):
+    def stock_convert_rq(self, sec_id):
+        if sec_id.startswith(('603', '688', '600', '605', '601')):
+            convert_id = sec_id + '.XSHG'
+        elif sec_id.startswith(('300', '002', '000')):
+            convert_id = sec_id + '.XSHE'
+        else:
+            print(f'{sec_id} is not named under rules, converted into {sec_id}.UKNOW')
+            convert_id = sec_id + '.UKNOW'
+        return convert_id
+
+
+class tonglian(ticker):
     """Security ID type is tonglian
 
     Attributes:
         to_source: secIdSource.SOURCE the target source to convert
     """
-
-    def __init__(self, to_source: secIdSource.SOURCE):
-        self.to_source = to_source
 
     def to_ticker(self, tonglian_id: str, sec_type: secIdSource.TYPE):
         """convert tonglian ID into ticker ID
@@ -107,7 +136,8 @@ class tonglian(secIdSource):
             ticker_id = self.to_ticker(tonglian_id, sec_type)
             conveted_id = ticker_id
             return conveted_id
-        raise ValueError(f'{self.to_source} is not included so far')
+        else:
+            raise ValueError(f'{self.to_source} is not included so far')
 
     def etf_to_ticker(self, tonglian_etf_id: str):
         """convert tonglian etf ID to ticker
@@ -125,6 +155,70 @@ class tonglian(secIdSource):
             print(f'{tonglian_etf_id} is not named under rules, converted into {tonglian_etf_id}.UKNOW')
             ticker_id = tonglian_etf_id + '.UKNOW'
         return ticker_id
+
+
+    class wind(ticker):
+
+        def to_ticker(self, wind_id: str, sec_type: secIdSource.TYPE):
+
+            if sec_type == 'stock':
+                return self.stock_to_ticker(wind_id)
+            else:
+                raise ValueError(f'{sec_type} is not included so far')
+
+        def convert(self, wind_id: str, sec_type: secIdSource.TYPE):
+
+            if self.to_source == 'ticker':
+                ticker_id = self.to_ticker(wind_id, sec_type)
+                converted_id = ticker_id
+                return converted_id
+            elif self.to_source == 'rq':
+                ticker_id = self.to_ticker(wind_id, sec_type)
+                converted_id = super().convert(ticker_id, sec_type)
+                return converted_id
+            else:
+                raise ValueError(f'{self.to_source} is not included so far')
+
+        def stock_to_ticker(self, winde_id):
+            if any(x in winde_id for x in ['SZ', 'SH']):
+                ticker_id = winde_id.split('.')[0]
+            else:
+                print(f'{winde_id} is not named under rules, converted into {winde_id}.UKNOW')
+                ticker_id = winde_id + '.UKNOW'
+            return ticker_id
+
+
+    class rq(ticker):
+
+        def to_ticker(self, wind_id: str, sec_type: secIdSource.TYPE):
+
+            if sec_type == 'etf':
+                return self.stock_to_ticker(wind_id)
+            else:
+                raise ValueError(f'{sec_type} is not included so far')
+
+        def convert(self, rq_id: str, sec_type: secIdSource.TYPE):
+
+            if self.to_source == 'ticker':
+                ticker_id = self.to_ticker(rq_id, sec_type)
+                converted_id = ticker_id
+                return converted_id
+            elif self.to_source == 'rq':
+                ticker_id = self.to_ticker(rq_id, sec_type)
+                converted_id = super().convert(ticker_id, sec_type)
+                return converted_id
+            else:
+                raise ValueError(f'{self.to_source} is not included so far')
+
+        def stock_to_ticker(self, rq_id):
+            if any(x in rq_id for x in ['XSHG', 'XSHE']):
+                ticker_id = rq_id.split('.')[0]
+            else:
+                print(f'{rq_id} is not named under rules, converted into {rq_id}.UKNOW')
+                ticker_id = rq_id + '.UKNOW'
+            return ticker_id
+
+
 
 
 if __name__ == '__main__':
